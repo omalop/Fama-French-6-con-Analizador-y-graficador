@@ -17,12 +17,13 @@ if sys.platform == 'win32':
 import sys
 import os
 
-# Agregar la ruta base del operador para importar sus modulos
+# Agregar la ruta base del operador para importar sus modulos (vía importlib para evitar conflicto namespace 'src')
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-OPERADOR_DIR = os.path.join(ROOT_DIR, 'operador_tendencia_alcista')
-sys.path.insert(0, OPERADOR_DIR)
-from src.estructura.cotas_historicas import DetectorCotas
-sys.path.pop(0)
+_cotas_path = os.path.join(ROOT_DIR, 'operador_tendencia_alcista', 'src', 'estructura', 'cotas_historicas.py')
+_cotas_spec = importlib.util.spec_from_file_location("cotas_historicas_mon", _cotas_path)
+_cotas_mod = importlib.util.module_from_spec(_cotas_spec)
+_cotas_spec.loader.exec_module(_cotas_mod)
+DetectorCotas = _cotas_mod.DetectorCotas
 
 # Importar lógica Domenec desde archivo local
 script_path = os.path.join(ROOT_DIR, 'src', 'models', 'script deteccion momentum domenec.py')

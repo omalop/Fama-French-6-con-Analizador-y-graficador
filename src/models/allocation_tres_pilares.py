@@ -46,6 +46,22 @@ from src.data.cache_docta import CacheDoctaAPI
 from src.data.scraping_screenermatic import obtener_bonos_frescos
 from src.data.historico_embi import obtener_riesgo_pais_fresco
 
+# Imports de módulos técnicos: Cotas y Domenec (vía importlib para evitar conflicto de namespace 'src')
+_cotas_path = os.path.join(ROOT_DIR, 'operador_tendencia_alcista', 'src', 'estructura', 'cotas_historicas.py')
+_cotas_spec = importlib.util.spec_from_file_location("cotas_historicas", _cotas_path)
+_cotas_mod = importlib.util.module_from_spec(_cotas_spec)
+_cotas_spec.loader.exec_module(_cotas_mod)
+DetectorCotas = _cotas_mod.DetectorCotas
+
+try:
+    dom_path = os.path.join(ROOT_DIR, 'src', 'models', 'script deteccion momentum domenec.py')
+    _spec = importlib.util.spec_from_file_location("domenec_alloc", dom_path)
+    _domenec = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_domenec)
+    _apply_indicators = _domenec.apply_indicators
+except Exception:
+    _apply_indicators = None
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. CONFIGURACIÓN
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1175,3 +1191,104 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n⚠️  Error al intentar ejecutar el monitoreo de posiciones: {e}")
     print(f"{SEP}\n")
+
+    # ─── RAYOS X TÉCNICO: DIAGNÓSTICO COTAS + DOMENEC PARA ACTIVOS SUGERIDOS ───
+    print(f"{SEP}")
+    print("🔬 RAYOS X TÉCNICO — ACTIVOS SUGERIDOS (Cotas + Domenec)".center(90))
+    print(f"{SEP}")
+    print("  Evaluando distancia a cotas históricas, fuerza de momentum y túnel Domenec...")
+    print()
+
+    # Recopilar los mejores activos del ranking (ampliado para buscar oportunidades técnicas)
+    tickers_rayosx = []
+    etiquetas_rayosx = {}
+    
+    # Top 10 de Argentina
+    if not df_arg.empty:
+        top_arg_rx = df_arg.head(10)
+        for _, row in top_arg_rx.iterrows():
+            tk = row['Ticker']
+            if tk not in tickers_rayosx:
+                tickers_rayosx.append(tk)
+                etiquetas_rayosx[tk] = 'RV Local'
+
+    # Top 15 Global
+    if not df_global_unificado.empty:
+        top_sec_rx = df_global_unificado.head(15)
+        for _, row in top_sec_rx.iterrows():
+            tk = row['Ticker']
+            if tk not in tickers_rayosx:
+                tickers_rayosx.append(tk)
+                etiquetas_rayosx[tk] = 'RV Global'
+
+    if tickers_rayosx and _apply_indicators:
+        print(f"  {'TICKER':<10} {'PILAR':<10} {'ESTADO DOMENEC':<35} {'DIST G-LINE':>11} {'SOPORTE 1':>18} {'RESIST 1':>18}")
+        print(f"  {'-'*105}")
+
+        for tk in tickers_rayosx:
+            try:
+                hist_rx = yf.download(tk, period='10y', progress=False, auto_adjust=True)
+                if hist_rx.empty:
+                    print(f"  {tk:<10} {'⚫ Sin datos'}")
+                    continue
+
+                if isinstance(hist_rx.columns, pd.MultiIndex):
+                    hist_rx = hist_rx.xs(tk, level='Ticker', axis=1)
+
+                # Domenec
+                df_dom = _apply_indicators(hist_rx.copy())
+                if df_dom.empty or 'Status_Control' not in df_dom.columns:
+                    estado_dom = 'Indeterminado'
+                    dist_gl = 0.0
+                else:
+                    estado_dom = df_dom['Status_Control'].iloc[-1]
+                    genial_l = df_dom['Genial_Line'].iloc[-1]
+                    precio_actual = df_dom['Close'].iloc[-1]
+                    dist_gl = ((precio_actual / genial_l) - 1) * 100
+
+                # Cotas
+                df_sem_rx = hist_rx.resample('W').last().dropna()
+                df_trim_rx = hist_rx.resample('Q').last().dropna()
+                datos_mt_rx = {'diario': hist_rx, 'semanal': df_sem_rx, 'trimestral': df_trim_rx}
+                cotas_rx = DetectorCotas().detectar(datos_mt_rx)
+
+                precio_actual = float(hist_rx['Close'].iloc[-1])
+                cotas_sup = sorted([c for c in cotas_rx if c.precio > precio_actual], key=lambda x: x.precio)
+                cotas_inf = sorted([c for c in cotas_rx if c.precio < precio_actual], key=lambda x: x.precio, reverse=True)
+
+                # Formatear soporte y resistencia más cercanos
+                if cotas_inf:
+                    s1 = cotas_inf[0]
+                    dist_s = ((s1.precio / precio_actual) - 1) * 100
+                    sop_str = f"${s1.precio:>8,.0f} ({dist_s:+.1f}%) [{s1.jerarquia[:4]}]"
+                else:
+                    sop_str = "Min Histórico"
+
+                if cotas_sup:
+                    r1 = cotas_sup[0]
+                    dist_r = ((r1.precio / precio_actual) - 1) * 100
+                    res_str = f"${r1.precio:>8,.0f} (+{dist_r:.1f}%) [{r1.jerarquia[:4]}]"
+                else:
+                    res_str = "Max Histórico"
+
+                # Indicador visual de interés
+                interesante = ''
+                if cotas_sup and cotas_inf:
+                    dist_resist = (cotas_sup[0].precio / precio_actual) - 1
+                    dist_soport = 1 - (cotas_inf[0].precio / precio_actual)
+                    # Interesante si tiene más margen de subida que de caída y momentum alcista
+                    es_momento_ok = not any(x in estado_dom for x in ['Bajista', 'Rojo', 'BrownDark', 'Purple'])
+                    if dist_resist > dist_soport and es_momento_ok:
+                        interesante = ' ⭐'
+
+                pilar = etiquetas_rayosx.get(tk, '')
+                print(f"  {tk:<10} {pilar:<10} {estado_dom:<35} {dist_gl:>+9.1f}%  {sop_str:>18} {res_str:>18}{interesante}")
+
+            except Exception as e:
+                print(f"  {tk:<10} Error: {e}")
+
+        print(f"\n  ⭐ = Momentum favorable + mayor margen de suba que de baja (relación riesgo/beneficio atractiva)")
+    else:
+        print("  ⚠️  No hay activos sugeridos o Domenec no disponible para diagnóstico.")
+
+    print(f"\n{SEP}\n")
