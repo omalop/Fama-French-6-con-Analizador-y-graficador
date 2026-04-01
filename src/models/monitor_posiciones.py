@@ -14,8 +14,17 @@ if sys.platform == 'win32':
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
 
-# Importar lógica Domenec desde archivo local
+import sys
+import os
+
+# Agregar la ruta base del operador para importar sus modulos
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+OPERADOR_DIR = os.path.join(ROOT_DIR, 'operador_tendencia_alcista')
+sys.path.insert(0, OPERADOR_DIR)
+from src.estructura.cotas_historicas import DetectorCotas
+sys.path.pop(0)
+
+# Importar lógica Domenec desde archivo local
 script_path = os.path.join(ROOT_DIR, 'src', 'models', 'script deteccion momentum domenec.py')
 spec = importlib.util.spec_from_file_location("domenec", script_path)
 domenec = importlib.util.module_from_spec(spec)
@@ -103,11 +112,14 @@ def evaluar_salida_domenec(df: pd.DataFrame) -> tuple:
         
     return False, "🛡️  MANTENER POSICIÓN"
 
-def comprobar_costo_oportunidad(ticker: str, tickers_cartera: list) -> tuple:
+def comprobar_costo_oportunidad(ticker: str, tickers_cartera: list, current_price: float, df_diario: pd.DataFrame, estado_control: str) -> tuple:
     """
     Comprueba si existe un nuevo activo con mayor probabilidad estadística (Ranking).
-    Evita concentración recomendando rotar solo a activos nuevos en el Top 5.
-    Se tolera mantener el activo si se mantiene dentro del Top 8.
+    Se sugiere la rotación SI Y SÓLO SI:
+    1. El activo cayó excesivamente de su "Zona Segura" (Top 8).
+    O:
+    2. El activo en cartera está CERCANO (<5%) a un Techo/Resistencia (Trimestral/Semanal)
+       Y está Perdiendo Fuerza de momentum.
     """
     ranking_path = os.path.join(ROOT_DIR, 'data/processed/Ranking_Argentina_Top.xlsx')
     if not os.path.exists(ranking_path):
@@ -120,21 +132,46 @@ def comprobar_costo_oportunidad(ticker: str, tickers_cartera: list) -> tuple:
     zona_segura = df_rank['Ticker'].head(8).tolist()
     top5_tickers = df_rank['Ticker'].head(5).tolist()
     
+    # Evaluar Cotas
+    df_sem = df_diario.resample('W').last().dropna()
+    df_trim = df_diario.resample('Q').last().dropna()
+    datos_mt = {'diario': df_diario, 'semanal': df_sem, 'trimestral': df_trim}
+    
+    cotas = DetectorCotas().detectar(datos_mt)
+    resistencia_peligrosa = False
+    distancia_pct = 999.0
+    cota_jerarquia = ""
+    
+    if cotas:
+        cotas_superiores = sorted([c for c in cotas if c.precio > current_price], key=lambda x: x.precio)
+        if cotas_superiores:
+            cota_cercana = cotas_superiores[0]
+            distancia_pct = (cota_cercana.precio / current_price) - 1
+            # Peligro si estamos a menos de 5% de un techo Trimestral o Semanal
+            if cota_cercana.jerarquia in ['Trimestral', 'Semanal'] and distancia_pct < 0.05:
+                resistencia_peligrosa = True
+                cota_jerarquia = cota_cercana.jerarquia
+    
+    perdiendo_fuerza = any(x in estado_control for x in ["Amarillo", "Rojo", "Bajista", "Correccion", "BrownDark", "Purple"])
+
     # Evitar concentración: buscar alternativas que NO tenga actualmente en cartera
     candidatos_nuevos = [t for t in top5_tickers if t not in tickers_cartera]
+    alternativa = candidatos_nuevos[0] if candidatos_nuevos else "N/A"
     
-    # Si el ticker actual cae debajo de la posición 8 (ej. 9°, 10°)... hay costo de oportunidad
-    if ticker not in zona_segura:
-        if candidatos_nuevos:
-            mejor_alternativa = candidatos_nuevos[0]
-            return True, f"⚠️ ROTACIÓN NECESARIA: Cayó del Top 8. Intercambiar por {mejor_alternativa} (Nuevo Top 5)."
-        else:
-            # Si ya tiene absolutamente todo el Top 5, buscar el primero disponible
-            alternativas_ranking = [t for t in df_rank['Ticker'].tolist() if t not in tickers_cartera]
-            mejor_alternativa = alternativas_ranking[0] if alternativas_ranking else "N/A"
-            return True, f"⚠️ ROTACIÓN NECESARIA: Cayó del Top 8. Alternativa: {mejor_alternativa}."
-        
-    return False, "Zona Segura Fundamental (Top 8)"
+    if alternativa == "N/A":
+        alternativas_ranking = [t for t in df_rank['Ticker'].tolist() if t not in tickers_cartera]
+        alternativa = alternativas_ranking[0] if alternativas_ranking else "N/A"
+    
+    if alternativa != "N/A":
+        # Condición 1: Cayó estructuralmente del Top
+        if ticker not in zona_segura:
+            return True, f"⚠️ ROTAR: Cayó del Top 8. Intercambiar por {alternativa}."
+            
+        # Condición 2: Resistencia Macro cerca + Pérdida de Fuerza
+        if resistencia_peligrosa and perdiendo_fuerza:
+            return True, f"⚠️ ROTAR: Cerca de Techo {cota_jerarquia} (+{distancia_pct:.1%}) y perdiendo momentum. Sugerido: {alternativa}."
+
+    return False, "Mantener con fundamentos intactos y sin bloqueos macro"
 
 def monitorear_cartera():
     """Ejecuta el ciclo principal de screening post-compra."""
@@ -203,15 +240,21 @@ def monitorear_cartera():
             # Evaluación Técnica de Salida Domenec
             salida_requerida, razon_estado = evaluar_salida_domenec(hist)
             
-            # Evaluación Costo de Oportunidad (Rotación) si el estado es mantener pero perdió fuerza
+            # Evaluación Costo de Oportunidad (Rotación) si está perdiendo fuerza / bloqueado
             estado_control_actual = hist['Status_Control'].iloc[-1]
-            rotar, razon_rotacion = comprobar_costo_oportunidad(p.Ticker, tickers_actuales)
+            rotar, razon_rotacion = comprobar_costo_oportunidad(
+                p.Ticker, 
+                tickers_actuales, 
+                current_price, 
+                hist, 
+                estado_control_actual
+            )
             
-            # Si debemos vender por estructura, la rotación no importa porque ya salimos
+            # Si debemos vender por estructura de riesgo absoluta (SL), no importa rotar, hay que liquidar ya
             if salida_requerida:
                 estado_final = razon_estado
-            elif rotar and any(x in estado_control_actual for x in ["Amarillo", "Rojo", "Bajista"]):
-                estado_final = f"🔄 ROTAR: Perdió fuerza ({estado_control_actual}). {razon_rotacion}"
+            elif rotar:
+                estado_final = razon_rotacion
             else:
                 estado_final = f"{razon_estado} ({estado_control_actual})"
             
