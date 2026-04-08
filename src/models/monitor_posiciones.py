@@ -135,7 +135,7 @@ def comprobar_costo_oportunidad(ticker: str, tickers_cartera: list, current_pric
     
     # Evaluar Cotas
     df_sem = df_diario.resample('W').last().dropna()
-    df_trim = df_diario.resample('Q').last().dropna()
+    df_trim = df_diario.resample('QE').last().dropna()
     datos_mt = {'diario': df_diario, 'semanal': df_sem, 'trimestral': df_trim}
     
     cotas = DetectorCotas().detectar(datos_mt)

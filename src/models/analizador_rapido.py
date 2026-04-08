@@ -37,6 +37,30 @@ except Exception as e:
     apply_indicators = None
 
 
+_ccl_cache = None
+
+def get_ccl_factor():
+    global _ccl_cache
+    if _ccl_cache is not None:
+        return _ccl_cache
+    
+    print("⏳ Descargando cotizaciones de GGAL para cálculo del dólar CCL...")
+    df_ccl = yf.download(['GGAL.BA', 'GGAL'], period="10y", progress=False, auto_adjust=True)
+    if isinstance(df_ccl.columns, pd.MultiIndex):
+        if 'Close' in df_ccl.columns:
+            closes = df_ccl['Close']
+        elif 'Adj Close' in df_ccl.columns:
+            closes = df_ccl['Adj Close']
+        else:
+            closes = df_ccl
+    else:
+        closes = df_ccl
+    
+    closes_aligned = closes[['GGAL.BA', 'GGAL']].dropna()
+    ccl_factor = (closes_aligned['GGAL.BA'] * 10) / closes_aligned['GGAL']
+    _ccl_cache = ccl_factor
+    return ccl_factor
+
 def analizar_ticker(ticker: str, graficar: bool = False):
     print(f"\n" + "="*80)
     print(f" 🔍 ANALIZADOR RÁPIDO COBINADO: {ticker.upper()}")
@@ -54,9 +78,20 @@ def analizar_ticker(ticker: str, graficar: bool = False):
         if isinstance(df_diario.columns, pd.MultiIndex):
             df_diario = df_diario.xs(ticker, level='Ticker', axis=1)
 
+        is_argentine = ticker.endswith('.BA')
+        if is_argentine:
+            print("💱 Activo argentino detectado. Convirtiendo cotización a Dólar CCL (GGAL)...")
+            ccl_factor = get_ccl_factor()
+            # Filtrar fechas comunes (donde operan ambos mercados) y evitar desarbitrajes
+            df_diario = df_diario.reindex(ccl_factor.index).dropna()
+            # Dolarizar columnas de precio
+            for col in ['Open', 'High', 'Low', 'Close']:
+                if col in df_diario:
+                    df_diario[col] = df_diario[col] / ccl_factor.loc[df_diario.index]
+
         # Resampling para Cotas usando la misma lógica del Operador Tendencia
         df_semanal = df_diario.resample('W').last() # Frecuencia semanal
-        df_trimestral = df_diario.resample('Q').last() # Frecuencia trimestral
+        df_trimestral = df_diario.resample('QE').last() # Frecuencia trimestral
 
         datos_mt = {
             'diario': df_diario.dropna(),
