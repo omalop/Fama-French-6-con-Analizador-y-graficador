@@ -26,6 +26,10 @@ import logging
 import importlib.util
 import warnings
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 import numpy as np
 import pandas as pd
@@ -66,8 +70,8 @@ except Exception:
 # 1. CONFIGURACIÓN
 # ─────────────────────────────────────────────────────────────────────────────
 
-CLIENT_ID     = os.getenv("DOCTA_CLIENT_ID",     "docta-api-cf68347b-omlop")
-CLIENT_SECRET = os.getenv("DOCTA_CLIENT_SECRET", "_ciyJML_JOgBD89Ft39PL6Az-ps9BJAAapzkQJ-u-LM")
+CLIENT_ID     = os.getenv("DOCTA_CLIENT_ID")
+CLIENT_SECRET = os.getenv("DOCTA_CLIENT_SECRET")
 
 RANKING_ARG    = os.path.join(ROOT_DIR, 'data/processed/Ranking_Argentina_Top.xlsx')
 RANKING_SEC    = os.path.join(ROOT_DIR, 'data/processed/Ranking_Global_SEC_Top.xlsx')
@@ -77,28 +81,10 @@ DASHBOARD_PATH = os.path.join(ROOT_DIR,
 DASHBOARD_ENV  = os.path.join(ROOT_DIR,
     'Dashboard de Indicadores Adelantados de Crisis Financiera v2/Original v2/FRED_API_KEY.env')
 
-# Bonos Hard Dollar para renta fija
-BONOS_SOBERANOS     = {"AL30": "Sobarano HD Ley Arg CP",
-                        "AE38": "Soberano HD Ley Arg LP",
-                        "GD38": "Soberano HD Ley NY (38)"}
-BONOS_CORPORATIVOS  = {"MGCRO": "Pampa Energía 2037 HD",
-                        "TSC4O": "TGS 2035 HD",
-                        "YFCJO": "YPF Luz 2032 HD",
-                        "BPOC7": "BOPREAL Serie 1C"}
-BONOS_SUBSOBERANOS  = {"BA37D": "Prov. Buenos Aires (37)",
-                        "SFD34": "Santa Fe (34)",
-                        "PMM29": "Mendoza (29)"}
+# La selección de bonos se realiza dinámicamente en obtener_yields_bonos()
+# filtrando por tipo (Soberano, Provincial, Corporativo) y moneda (USD, ARS).
 
-# Bonos en Pesos (Tasa Fija / Ajuste CER) para Carry Trade
-BONOS_PESOS_CER     = {"S31L6": "LECAP Jul-26 (ARS)",
-                       "TZX26": "BONCER Jun-26 (CER)",
-                       "TZXD7": "BONCER Dic-27 (CER)",
-                       "TZX28": "BONCER Jun-28 (CER)",
-                       "DICP": "Discount (CER 2033)"}
-
-# PHPSESSID actualizado para Screenermatic (renovar cuando expire)
-# Actualizado: 2026-03-20
-_PHPSESSID_ACTUAL = "ed408b4795997a1f44ef7d1f1c2a2ff7"
+# PHPSESSID se gestiona vía .env y scraping_screenermatic.py
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -444,43 +430,80 @@ def seleccionar_por_umbral(
 def obtener_yields_bonos(df_bonos: pd.DataFrame) -> dict:
     """
     Extrae TIR, Modified Duration, Convexidad, y Paridad desde el DataFrame
-    de Screenermatic para los 4 segmentos de RF.
+    de Screenermatic de forma DINÁMICA por categoría y moneda.
+    
+    Categorías:
+        - Soberano HD: Títulos nacionales en USD.
+        - Subsoberano HD: Títulos provinciales en USD.
+        - Corporativo HD: Títulos privados en USD.
+        - Pesos/CER: Títulos (Soberanos/BCRA/Provinciales) en ARS.
 
-    Retorna:
-        dict {ticker: {'desc': str, 'segmento': str, 'tir': float,
-                       'md': float, 'cvx': float, 'paridad': float,
-                       'tem': float}}
-
-    Referencia Duration y Convexidad:
-        Fabozzi, F. J. (2007). "Fixed Income Mathematics". McGraw-Hill, Cap. 4-5.
+    Referencia:
+        Jorion, P. (2007). "Value at Risk: The New Benchmark for Managing Financial Risk".
     """
     todos = {}
-    for ticker, desc in BONOS_SOBERANOS.items():
-        todos[ticker] = {'desc': desc, 'segmento': 'Soberano'}
-    for ticker, desc in BONOS_CORPORATIVOS.items():
-        todos[ticker] = {'desc': desc, 'segmento': 'Corporativo'}
-    for ticker, desc in BONOS_SUBSOBERANOS.items():
-        todos[ticker] = {'desc': desc, 'segmento': 'Subsoberano'}
-    for ticker, desc in BONOS_PESOS_CER.items():
-        todos[ticker] = {'desc': desc, 'segmento': 'Pesos/CER'}
+    
+    if df_bonos.empty:
+        return {}
 
-    for ticker in todos:
-        fila = df_bonos[df_bonos['simbolo'] == ticker]
-        if not fila.empty:
-            tir = fila.iloc[0].get('tir_pct')
-            tir_decimal = tir / 100.0 if pd.notna(tir) else None
-            todos[ticker]['tir'] = tir_decimal
-            todos[ticker]['md'] = fila.iloc[0].get('modified_dur')
-            todos[ticker]['cvx'] = fila.iloc[0].get('convexidad')
-            todos[ticker]['paridad'] = fila.iloc[0].get('paridad_pct')
-            # TEM: Tasa Efectiva Mensual = (1 + TIR_anual)^(1/12) - 1
-            todos[ticker]['tem'] = (1 + tir_decimal) ** (1/12) - 1 if tir_decimal is not None else None
-        else:
-            todos[ticker]['tir']   = None
-            todos[ticker]['md']    = None
-            todos[ticker]['cvx']   = None
-            todos[ticker]['paridad'] = None
-            todos[ticker]['tem']   = None
+    # 1. Soberanos Hard Dollar (Nacionales en USD)
+    soberanos_hd = df_bonos[(df_bonos['tipo'] == 'Soberano') & (df_bonos['moneda'] == 'USD')]
+    for _, fila in soberanos_hd.iterrows():
+        todos[fila['simbolo']] = {
+            'desc': fila['descripcion'], 
+            'segmento': 'Soberano',
+            'tir': fila['tir_pct'] / 100.0 if pd.notna(fila['tir_pct']) else None,
+            'md': fila['modified_dur'],
+            'cvx': fila['convexidad'],
+            'paridad': fila['paridad_pct'],
+            'tem': (1 + fila['tir_pct']/100.0)**(1/12) - 1 if pd.notna(fila['tir_pct']) else None
+        }
+
+    # 2. Subsoberanos Hard Dollar (Provinciales en USD)
+    provinciales_hd = df_bonos[(df_bonos['tipo'] == 'Provincial') & (df_bonos['moneda'] == 'USD')]
+    for _, fila in provinciales_hd.iterrows():
+        todos[fila['simbolo']] = {
+            'desc': fila['descripcion'], 
+            'segmento': 'Subsoberano',
+            'tir': fila['tir_pct'] / 100.0 if pd.notna(fila['tir_pct']) else None,
+            'md': fila['modified_dur'],
+            'cvx': fila['convexidad'],
+            'paridad': fila['paridad_pct'],
+            'tem': (1 + fila['tir_pct']/100.0)**(1/12) - 1 if pd.notna(fila['tir_pct']) else None
+        }
+
+    # 3. Corporativos Hard Dollar (Empresas en USD)
+    corpo_hd = df_bonos[(df_bonos['tipo'] == 'Corporativo') & (df_bonos['moneda'] == 'USD')]
+    for _, fila in corpo_hd.iterrows():
+        todos[fila['simbolo']] = {
+            'desc': fila['descripcion'], 
+            'segmento': 'Corporativo',
+            'tir': fila['tir_pct'] / 100.0 if pd.notna(fila['tir_pct']) else None,
+            'md': fila['modified_dur'],
+            'cvx': fila['convexidad'],
+            'paridad': fila['paridad_pct'],
+            'tem': (1 + fila['tir_pct']/100.0)**(1/12) - 1 if pd.notna(fila['tir_pct']) else None
+        }
+
+    # 4. Renta Fija en Pesos (Soberano/BCRA/Provincial en ARS)
+    pesos_cer = df_bonos[
+        ((df_bonos['tipo'].isin(['Soberano', 'Banco central', 'Provincial'])) & (df_bonos['moneda'] == 'ARS')) |
+        ((df_bonos['simbolo'].str.startswith('S')) & (df_bonos['moneda'] == 'ARS'))
+    ]
+    for _, fila in pesos_cer.iterrows():
+        # Evitar instrumentos sin datos de mercado mínimos
+        if pd.isna(fila['tir_pct']) and pd.isna(fila['modified_dur']):
+            continue
+            
+        todos[fila['simbolo']] = {
+            'desc': fila['descripcion'], 
+            'segmento': 'Pesos/CER',
+            'tir': fila['tir_pct'] / 100.0 if pd.notna(fila['tir_pct']) else None,
+            'md': fila['modified_dur'],
+            'cvx': fila['convexidad'],
+            'paridad': fila['paridad_pct'],
+            'tem': (1 + fila['tir_pct']/100.0)**(1/12) - 1 if pd.notna(fila['tir_pct']) else None
+        }
 
     return todos
 
@@ -592,15 +615,15 @@ if __name__ == "__main__":
     UMBRAL_LOCAL  = 0.30
     UMBRAL_GLOBAL = 0.50
 
-    # Pre-selección dinámica para calcular P/E representativo
+    # Pre-selección dinámica para calcular P/E representativo (draft inicial)
     df_arg_sel = seleccionar_por_umbral(
-        df_arg, peso_total=alloc_preliminar_rv_local if 'alloc_preliminar_rv_local' in dir() else 0.50,
+        df_arg, peso_total=0.50, # Peso estimado inicial para cálculo de P/E
         umbral_score=UMBRAL_LOCAL, min_activos=3, max_activos=10,
         aplicar_momentum=True
     ) if not df_arg.empty else pd.DataFrame()
 
     df_global_sel = seleccionar_por_umbral(
-        df_global_unificado, peso_total=alloc_preliminar_rv_global if 'alloc_preliminar_rv_global' in dir() else 0.15,
+        df_global_unificado, peso_total=0.30, # Peso estimado inicial para cálculo de P/E
         umbral_score=UMBRAL_GLOBAL, min_activos=5, max_activos=15,
         aplicar_momentum=True
     ) if not df_global_unificado.empty else pd.DataFrame()

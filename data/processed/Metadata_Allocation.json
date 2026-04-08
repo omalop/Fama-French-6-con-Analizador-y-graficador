@@ -1,7 +1,7 @@
 {
     "confianza_gob": 50.0,
     "inflacion_previa": 0.028999999999999998,
-    "inflacion_esperada": 0.03,
+    "inflacion_esperada": 0.028999999999999998,
     "inflacion_anual_esperada": 0.3,
     "devalu_esperada": 0.028999999999999998,
     "signals_crisis": {
@@ -11,15 +11,15 @@
     },
     "prob_crisis": 0.1,
     "divergencia": {
-        "tipo": "Divergencia Alcista Estructural",
-        "impacto_rv": 0.15,
-        "mensaje": "Riesgo Pa\u00eds colaps\u00f3 35.7% anual y GGAL sigue rezagada (-12.9%). \ud83d\ude80 Fuerte upside de RV pendiente."
+        "tipo": "Neutral",
+        "impacto_rv": 0.0,
+        "mensaje": "Correlaci\u00f3n macro consistente. GGAL 1A: +2.6% | EMBI 1A: -15.9%"
     },
-    "beta_cartera_spy": 0.978,
-    "beta_cartera_merv": 0.49,
-    "vol_anual": 0.3094,
-    "cagr_cartera": 0.3208,
-    "sharpe_cartera": 0.9,
-    "max_dd_1a": -0.2147,
-    "fecha_run": "01/04/2026 17:52"
+    "beta_cartera_spy": 0.911,
+    "beta_cartera_merv": 0.42,
+    "vol_anual": 0.2761,
+    "cagr_cartera": 0.503,
+    "sharpe_cartera": 1.66,
+    "max_dd_1a": -0.1762,
+    "fecha_run": "08/04/2026 09:57"
 }
