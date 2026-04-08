@@ -810,10 +810,10 @@ def main():
                 df_unif = df_unif.drop_duplicates(subset=['Ticker'])
                 df_unif = df_unif.sort_values(by='Final_Score', ascending=False)
                 df_unif.to_excel(unif_path, index=False)
-                print(f"✅ Ranking UNIFICADO guardado en: {unif_path}")
+                print(f"Ranking UNIFICADO guardado en: {unif_path}")
                 print(f"   Total activos: {len(df_unif)}")
         except Exception as e:
-            print(f"❌ Error al unificar: {e}")
+            print(f"Error al unificar: {e}")
 
     if args.modo in ('all', 'arg'):
         run_screener('config/ticker_arg.txt', 'argentina', arg_path, fuente='yfinance')
