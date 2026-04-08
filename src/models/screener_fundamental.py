@@ -413,17 +413,31 @@ class FamaFrenchCalculator:
                 }, inplace=True)
                 hist.set_index('Date', inplace=True)
                 hist.sort_index(inplace=True)
+
+                # ⚠️ Lógica analizador_rapido: Dolarizar precios si es .BA antes de indicadores
+                if ticker.endswith('.BA') and not ccl_serie.empty:
+                    # Alinear fechas
+                    hist.index = pd.to_datetime(hist.index).normalize().tz_localize(None)
+                    ccl_serie.index = pd.to_datetime(ccl_serie.index).normalize().tz_localize(None)
+                    idx_comun = hist.index.intersection(ccl_serie.index)
+                    if len(idx_comun) > 0:
+                        # Dolarizar columnas de precio
+                        for col in ['Open', 'High', 'Low', 'Close']:
+                            if col in hist.columns:
+                                hist.loc[idx_comun, col] = hist.loc[idx_comun, col] / ccl_serie.loc[idx_comun]
+                        hist = hist.loc[idx_comun]
+                    else:
+                        continue
                 
                 price = hist['Close'].iloc[-1]
                 
-                # Ajuste por CCL para acciones locales (Market Cap en USD)
+                # Ajuste para Market Cap (Ya está dolarizado si entró al if anterior, 
+                # pero mantenemos la lógica por claridad)
                 if ticker.endswith('.BA') and not ccl_serie.empty:
-                    idx_comun = hist.index.intersection(ccl_serie.index)
-                    if len(idx_comun) > 0:
-                        ultimo_ccl = ccl_serie.loc[idx_comun].iloc[-1]
-                        mkt_cap = (price / ultimo_ccl) * shares if shares > 0 else 0
-                    else:
-                        mkt_cap = 0
+                    # El price ya está en USD-CCL aquí. shares es el nro de acciones.
+                    # El factor 10 del CCL (GGAL.BA*10/GGAL) ya maneja la conversión a ADR.
+                    # Si price = ARS/CCL, entonces price está en USD.
+                    mkt_cap = price * shares if shares > 0 else 0
                 else:
                     mkt_cap = price * shares if shares > 0 else 0
                 

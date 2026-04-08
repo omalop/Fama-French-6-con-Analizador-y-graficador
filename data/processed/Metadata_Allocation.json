@@ -13,13 +13,13 @@
     "divergencia": {
         "tipo": "Neutral",
         "impacto_rv": 0.0,
-        "mensaje": "Correlaci\u00f3n macro consistente. GGAL 1A: +2.6% | EMBI 1A: -15.9%"
+        "mensaje": "Correlaci\u00f3n macro consistente. GGAL 1A: +8.3% | EMBI 1A: -31.9%"
     },
-    "beta_cartera_spy": 0.911,
-    "beta_cartera_merv": 0.42,
-    "vol_anual": 0.2756,
-    "cagr_cartera": 0.5047,
-    "sharpe_cartera": 1.68,
-    "max_dd_1a": -0.1762,
-    "fecha_run": "08/04/2026 10:29"
+    "beta_cartera_spy": 1.076,
+    "beta_cartera_merv": 0.711,
+    "vol_anual": 0.388,
+    "cagr_cartera": 0.4549,
+    "sharpe_cartera": 1.06,
+    "max_dd_1a": -0.3079,
+    "fecha_run": "08/04/2026 10:44"
 }

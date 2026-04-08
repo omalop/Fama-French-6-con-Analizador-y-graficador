@@ -1065,6 +1065,8 @@ if __name__ == "__main__":
             
             # Descargar historicos una sola vez para eficiencia
             print(f"  ⚡  Calculando Betas duales para {len(tickers_rv)} activos...")
+            ccl_metric = obtener_serie_ccl() # Obtener CCL una sola vez
+            
             for ticker in tickers_rv:
                 try:
                     hist_t = yf.download(ticker, period="1y", progress=False)
@@ -1072,6 +1074,14 @@ if __name__ == "__main__":
                         hist_t = hist_t.xs('Close', level='Price', axis=1).squeeze()
                     else:
                         hist_t = hist_t['Close']
+                    
+                    # ⚠️ Lógica analizador_rapido: Convertir a CCL si es .BA
+                    if ticker.endswith('.BA') and not ccl_metric.empty:
+                        hist_t.index = pd.to_datetime(hist_t.index).normalize().tz_localize(None)
+                        ccl_metric.index = pd.to_datetime(ccl_metric.index).normalize().tz_localize(None)
+                        idx_comun = hist_t.index.intersection(ccl_metric.index)
+                        hist_t = hist_t.loc[idx_comun] / ccl_metric.loc[idx_comun]
+                    
                     ret_t = hist_t.pct_change().dropna()
                     
                     # Beta SPY
@@ -1124,6 +1134,14 @@ if __name__ == "__main__":
                         close_t = hist_t.xs('Close', level='Price', axis=1).squeeze()
                     else:
                         close_t = hist_t['Close']
+                    
+                    # ⚠️ Lógica analizador_rapido: Convertir a CCL si es .BA
+                    if ticker.endswith('.BA') and not ccl_metric.empty:
+                        close_t.index = pd.to_datetime(close_t.index).normalize().tz_localize(None)
+                        ccl_metric.index = pd.to_datetime(ccl_metric.index).normalize().tz_localize(None)
+                        idx_comun = close_t.index.intersection(ccl_metric.index)
+                        close_t = close_t.loc[idx_comun] / ccl_metric.loc[idx_comun]
+
                     ret_t = close_t.pct_change().reindex(common_index).fillna(0)
                     retornos_df[ticker] = ret_t * peso
                 except Exception:
