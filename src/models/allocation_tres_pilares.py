@@ -1271,7 +1271,7 @@ if __name__ == "__main__":
 
                 # Cotas
                 df_sem_rx = hist_rx.resample('W').last().dropna()
-                df_trim_rx = hist_rx.resample('Q').last().dropna()
+                df_trim_rx = hist_rx.resample('QE').last().dropna()
                 datos_mt_rx = {'diario': hist_rx, 'semanal': df_sem_rx, 'trimestral': df_trim_rx}
                 cotas_rx = DetectorCotas().detectar(datos_mt_rx)
 

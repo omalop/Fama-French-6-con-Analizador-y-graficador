@@ -109,7 +109,7 @@ if __name__ == "__main__":
     ]
     
     # Resteamos a resample por fin de mes para el reporte visual
-    trade_mensual = trade_electoral.set_index('fecha').resample('M').last()
+    trade_mensual = trade_electoral.set_index('fecha').resample('ME').last()
     
     for fecha, fila in trade_mensual.iterrows():
         puntos = fila['embi_puntos']
