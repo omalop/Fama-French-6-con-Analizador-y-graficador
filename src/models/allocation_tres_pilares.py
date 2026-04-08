@@ -446,6 +446,9 @@ def obtener_yields_bonos(df_bonos: pd.DataFrame) -> dict:
     if df_bonos.empty:
         return {}
 
+    # Filtrar tickers con terminación 'C' (Dólar Cable / Operatoria No Local)
+    df_bonos = df_bonos[~df_bonos['simbolo'].str.endswith('C')].copy()
+
     # 1. Soberanos Hard Dollar (Nacionales en USD)
     soberanos_hd = df_bonos[(df_bonos['tipo'] == 'Soberano') & (df_bonos['moneda'] == 'USD')]
     for _, fila in soberanos_hd.iterrows():
