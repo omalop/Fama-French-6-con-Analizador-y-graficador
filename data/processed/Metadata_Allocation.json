@@ -2,7 +2,7 @@
     "confianza_gob": 50.0,
     "inflacion_previa": 0.028999999999999998,
     "inflacion_esperada": 0.028999999999999998,
-    "inflacion_anual_esperada": 0.3,
+    "inflacion_anual_esperada": 0.26,
     "devalu_esperada": 0.028999999999999998,
     "signals_crisis": {
         "Curva_10Y2Y": 0,
@@ -17,9 +17,9 @@
     },
     "beta_cartera_spy": 0.911,
     "beta_cartera_merv": 0.42,
-    "vol_anual": 0.2761,
-    "cagr_cartera": 0.503,
-    "sharpe_cartera": 1.66,
+    "vol_anual": 0.2756,
+    "cagr_cartera": 0.5047,
+    "sharpe_cartera": 1.68,
     "max_dd_1a": -0.1762,
-    "fecha_run": "08/04/2026 09:57"
+    "fecha_run": "08/04/2026 10:29"
 }

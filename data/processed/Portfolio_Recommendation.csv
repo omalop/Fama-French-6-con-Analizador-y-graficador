@@ -9,75 +9,15 @@ KB,RV_Global,0.034,1.14,0.0,0.0
 TRV,RV_Global,0.0299,1.01,0.0,0.0
 LMT,RV_Global,0.0263,0.88,0.0,0.0
 NMR,RV_Global,0.0258,0.86,0.0,0.0
-SNAAO,RF_Local_Pesos (San Miguel. Serie 10. Clase A. Dolar LinSan Miguel. Serie 10. Clase A. Dolar Linked. 7.00%. ARS. Vto. 07-2026.),0.001,1.7773,0.0889,1.7773
-SNABO,RF_Local_Pesos (San Miguel. Serie 10. Clase B. Tasa fijaSan Miguel. Serie 10. Clase B. Tasa fija 9%. USD. Vto. 07-2026.),0.001,0.9079,0.0553,0.9079
-SNSBO,RF_Local_Pesos (San Miguel. Serie 11. Tasa Fija. 9.50%. San Miguel. Serie 11. Tasa Fija. 9.50%. USD. Vto. 10-2026.),0.001,0.7454,0.0475,0.7454
-SXC3O,RF_Local_Pesos (Mercado Pago. Clase III. Tasa Tamar +3.5Mercado Pago. Clase III. Tasa Tamar +3.50%. ARS. Vto. 02-2027.),0.001,0.5665,0.0381,0.5665
-DIP0,RF_Local_Pesos (Discount. Canje 2010. ARS.CER + 5.83%. VDiscount. Canje 2010. ARS.CER + 5.83%. Vto.12-2033.),0.001,0.0738,0.035,0.0738
-TZXS8,RF_Local_Pesos (BONCER. Cero Cupón. ARS. Vto. 09-2028.BONCER. Cero Cupón. ARS. Vto. 09-2028.),0.001,0.0688,0.0346,0.0688
-TZXM9,RF_Local_Pesos (BONCER. Cero Cupon. ARS. Vto. 03-2029.BONCER. Cero Cupon. ARS. Vto. 03-2029.),0.001,0.067,0.0344,0.067
-TZX28,RF_Local_Pesos (Boncer cero cupon. Ajuste CER. 0.00%. ARBoncer cero cupon. Ajuste CER. 0.00%. ARS. Vto. 06-2028.),0.001,0.0668,0.0344,0.0668
-SNSDO,RF_Local_Pesos (San Miguel. Serie 12. Tasa Fija. 9.50%. San Miguel. Serie 12. Tasa Fija. 9.50%. USD. Vto. 02-2027.),0.001,0.4979,0.0342,0.4979
-TX31,"RF_Local_Pesos (Bonos del Tesoro Nacional en Pesos ajustBonos del Tesoro Nacional en Pesos ajustado por CER 2,50% Vto. 30-11-2031)",0.001,0.0627,0.0341,0.0627
-TZXD7,RF_Local_Pesos (Boncer cero cupon. Ajuste CER. 0.00%. ARBoncer cero cupon. Ajuste CER. 0.00%. ARS. Vto. 12-2027.),0.001,0.046,0.0328,0.046
-TZXS7,RF_Local_Pesos (BONCER. Cero Cupón. ARS. Vto. 09-2027.BONCER. Cero Cupón. ARS. Vto. 09-2027.),0.001,0.0431,0.0325,0.0431
-TTD26,RF_Local_Pesos (Bonte Dual. Tasa Fija 2.14% o Tamar. ARSBonte Dual. Tasa Fija 2.14% o Tamar. ARS. Vto. 12-2026.),0.001,0.4614,0.0321,0.4614
-TTS26,RF_Local_Pesos (Bonte Dual. Tasa Fija 2.17% o Tamar. ARSBonte Dual. Tasa Fija 2.17% o Tamar. ARS. Vto. 09-2026.),0.001,0.455,0.0317,0.455
-TTJ26,RF_Local_Pesos (Bonte Dual. Tasa Fija 2.19% o Tamar. ARSBonte Dual. Tasa Fija 2.19% o Tamar. ARS. Vto. 06-2026.),0.001,0.4475,0.0313,0.4475
-SXC1O,RF_Local_Pesos (Mercado pago. Clase I. Tasa Tamar +2.85%Mercado pago. Clase I. Tasa Tamar +2.85%. ARS. Vto. 07-2026.),0.001,0.438,0.0307,0.438
-TZX27,RF_Local_Pesos (Boncer cero cupon. Ajuste CER. 0.00%. ARBoncer cero cupon. Ajuste CER. 0.00%. ARS. Vto. 06-2027.),0.001,0.0157,0.0303,0.0157
-TZXY7,RF_Local_Pesos (Boncer Cero Cupon. Ajuste CER. 0.00%. ARBoncer Cero Cupon. Ajuste CER. 0.00%. ARS. Vto. 05-2027.),0.001,0.0128,0.0301,0.0128
-TZXM7,RF_Local_Pesos (Boncer cero cupon. Ajuste CER. 0.00%. ARBoncer cero cupon. Ajuste CER. 0.00%. ARS. Vto. 03-2027.),0.001,0.0096,0.0298,0.0096
-TZXD6,RF_Local_Pesos (Boncer cero cupon. Ajuste CER. 0.00%. ARBoncer cero cupon. Ajuste CER. 0.00%. ARS. Vto. 12-2026.),0.001,0.0024,0.0292,0.0024
-AE38C,RF_Local_HD (Bonos de la Republica Argentina en USD. Bonos de la Republica Argentina en USD. Step Up. Vto. 2038),0.0035,0.1043,0.0083,0.1043
-AE38D,RF_Local_HD (Bonos de la Republica Argentina en USD. Bonos de la Republica Argentina en USD. Step Up. Vto. 2038),0.0035,0.1055,0.0084,0.1055
-AL35C,RF_Local_HD (Bonos de la Republica Argentina en USD. Bonos de la Republica Argentina en USD. Step Up. Vto. 2035),0.0035,0.1035,0.0082,0.1035
-AL35D,RF_Local_HD (Bonos de la Republica Argentina en USD. Bonos de la Republica Argentina en USD. Step Up. Vto. 2035),0.0035,0.1033,0.0082,0.1033
-AL41C,RF_Local_HD (Bonos de la Republica Argentina en USD. Bonos de la Republica Argentina en USD. Step Up. Vto. 2041),0.0035,0.1024,0.0082,0.1024
-AL41D,RF_Local_HD (Bonos de la Republica Argentina en USD. Bonos de la Republica Argentina en USD. Step Up. Vto. 2041),0.0035,0.1027,0.0082,0.1027
-AN29C,RF_Local_HD (Bonar. Tasa Fija 6.50%. USD. Vto. 11-202Bonar. Tasa Fija 6.50%. USD. Vto. 11-2029.),0.0035,0.0973,0.0078,0.0973
-AN29D,RF_Local_HD (Bonar. Tasa Fija 6.50%. USD. Vto. 11-202Bonar. Tasa Fija 6.50%. USD. Vto. 11-2029.),0.0035,0.0973,0.0078,0.0973
-GD30C,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2030),0.0035,0.0952,0.0076,0.0952
-GD30D,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2030),0.0035,0.0952,0.0076,0.0952
-GD35C,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2035),0.0035,0.1058,0.0084,0.1058
-GD35D,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2035),0.0035,0.1065,0.0085,0.1065
-GD38C,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2038),0.0035,0.1074,0.0085,0.1074
-GD38D,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2038),0.0035,0.1076,0.0086,0.1076
-GD41C,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2041),0.0035,0.1069,0.0085,0.1069
-GD41D,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2041),0.0035,0.1065,0.0085,0.1065
-GD46C,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2046),0.0035,0.1042,0.0083,0.1042
-GD46D,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2046),0.0035,0.1038,0.0083,0.1038
-TY30D,RF_Local_HD (BONTE. Tasa Fija 29.5%. ARS. Vto. 05-203BONTE. Tasa Fija 29.5%. ARS. Vto. 05-2030.),0.0035,0.2776,0.0206,0.2776
-BA7DC,RF_Local_HD (Bonos PBA clase A 2037 USDBonos PBA clase A 2037 USD),0.0035,0.1207,0.0095,0.1207
-BA7DD,RF_Local_HD (Bonos PBA clase A 2037 USDBonos PBA clase A 2037 USD),0.0035,0.1208,0.0095,0.1208
-BB7DC,RF_Local_HD (Bonos PBA clase B 2037 USDBonos PBA clase B 2037 USD),0.0035,0.1153,0.0091,0.1153
-BB7DD,RF_Local_HD (Bonos PBA clase B 2037 USDBonos PBA clase B 2037 USD),0.0035,0.1232,0.0097,0.1232
-BC7DD,RF_Local_HD (Bonos PBA clase C 2037 USDBonos PBA clase C 2037 USD),0.0035,0.1274,0.01,0.1274
-BNA6D,RF_Local_HD (Letras del Tesoro de Neuquen. Serie 1. CLetras del Tesoro de Neuquen. Serie 1. Clase I. Tasa Fija 9.25%. USD. Vto. 04-2026),0.0035,0.1132,0.009,0.1132
-CO32C,RF_Local_HD (Pcia. Cordoba. Tasa Fija 9.75%. USD. VtoPcia. Cordoba. Tasa Fija 9.75%. USD. Vto. 07-2032.),0.0035,0.0934,0.0075,0.0934
-CO32D,RF_Local_HD (Pcia. Cordoba. Tasa Fija 9.75%. USD. VtoPcia. Cordoba. Tasa Fija 9.75%. USD. Vto. 07-2032.),0.0035,0.0937,0.0075,0.0937
-CO35C,RF_Local_HD (Pcia. Córdoba. Tasa fija 8.6%. USD. VtoPcia. Córdoba. Tasa fija 8.6%. USD. Vto. 02-2035.),0.0035,0.0966,0.0077,0.0966
-CO35D,RF_Local_HD (Pcia. Córdoba. Tasa fija 8.6%. USD. VtoPcia. Córdoba. Tasa fija 8.6%. USD. Vto. 02-2035.),0.0035,0.0962,0.0077,0.0962
-S24DD,RF_Local_HD (Salta. Step-UP. USD. Reestructurado. VtoSalta. Step-UP. USD. Reestructurado. Vto. 12-2027),0.0035,0.1398,0.011,0.1398
-SA24D,RF_Local_HD (Salta. Step-UP. USD. Reestructurado. VtoSalta. Step-UP. USD. Reestructurado. Vto. 12-2027),0.0035,0.1219,0.0096,0.1219
-CAC8D,RF_Local_HD (Capex S.A. Clase VIII. Tasa Fija 5.95% UCapex S.A. Clase VIII. Tasa Fija 5.95% USD. Vto. 06-2026),0.0035,0.162,0.0126,0.162
-CIC9D,RF_Local_HD (CNH. Clase IX. Tasa fija 8.25%. USD. VtoCNH. Clase IX. Tasa fija 8.25%. USD. Vto. 05-2027.),0.0035,0.0983,0.0078,0.0983
-CP36D,RF_Local_HD (Compañía General de Combustibles S.A. Compañía General de Combustibles S.A. Clase XXXVI. Tasa fija 6.5%. USD. Vto. 10-2027),0.0035,0.0979,0.0078,0.0979
-CP38C,RF_Local_HD (Compañia General de Combustibles S.A. CCompañia General de Combustibles S.A. Clase XXXVIII. Tasa fija 11.875%. USD. Vto. 11-2030.),0.0035,0.1194,0.0094,0.1194
-CP40D,RF_Local_HD (Compañia General de Combustibles S.A. CCompañia General de Combustibles S.A. Clase XL. Tasa fija 9.50%. USD. Vto. 03-2028.),0.0035,0.1014,0.0081,0.1014
-CWC6D,RF_Local_HD (Crown Point. Clase VI. Tasa fija 9.5%. UCrown Point. Clase VI. Tasa fija 9.5%. USD. Vto. 10-2027.),0.0035,0.1436,0.0112,0.1436
-DEC2C,RF_Local_HD (Edesa. Clase II. Tasa Fija 8.00%. USD. VEdesa. Clase II. Tasa Fija 8.00%. USD. Vto. 02-2027.),0.0035,0.0982,0.0078,0.0982
-DEC2D,RF_Local_HD (Edesa. Clase II. Tasa Fija 8.00%. USD. VEdesa. Clase II. Tasa Fija 8.00%. USD. Vto. 02-2027.),0.0035,0.1132,0.009,0.1132
-DHSJD,RF_Local_HD (Credicuotas Consumo. Clase XVIII. Tasa fCredicuotas Consumo. Clase XVIII. Tasa fija 7.00%. USD. Vto. 08-2026.),0.0035,0.0986,0.0079,0.0986
-DNC7C,RF_Local_HD (Edenor Clase VII. Tasa Fija 9.75% USD. VEdenor Clase VII. Tasa Fija 9.75% USD. Vto. 10-2030.),0.0035,0.0982,0.0078,0.0982
-DNC7D,RF_Local_HD (Edenor Clase VII. Tasa Fija 9.75% USD. VEdenor Clase VII. Tasa Fija 9.75% USD. Vto. 10-2030.),0.0035,0.0969,0.0077,0.0969
-DNC8C,RF_Local_HD (Edenor. Clase VIII. Tasa Fija 8.50%. USDEdenor. Clase VIII. Tasa Fija 8.50%. USD. Vto. 08-2026.),0.0035,0.1191,0.0094,0.1191
-DNC8D,RF_Local_HD (Edenor. Clase VIII. Tasa Fija 8.50%. USDEdenor. Clase VIII. Tasa Fija 8.50%. USD. Vto. 08-2026.),0.0035,0.1464,0.0115,0.1464
-MCC2C,RF_Local_HD (Pecom. Clase II. Tasa fija 7.50%. USD. VPecom. Clase II. Tasa fija 7.50%. USD. Vto. 06-2027.),0.0035,0.1138,0.009,0.1138
-MSSED,RF_Local_HD (MSU Serie 13. Tasa fija 6.5% USD Vto. 07MSU Serie 13. Tasa fija 6.5% USD Vto. 07-2026),0.0035,0.1178,0.0093,0.1178
-OZC3C,RF_Local_HD (EDEMSA. Clase III. Tasa Fija 8%. USD. VtEDEMSA. Clase III. Tasa Fija 8%. USD. Vto. 11-2027.),0.0035,0.101,0.0081,0.101
-RAC5D,RF_Local_HD (Raghsa. Clase V. Tasa Fija 8.25%. USD. VRaghsa. Clase V. Tasa Fija 8.25%. USD. Vto. 04-2030.),0.0035,0.0958,0.0077,0.0958
-RAC6D,RF_Local_HD (Raghsa. Clase 6. Tasa Fija 5.98% USD. VtRaghsa. Clase 6. Tasa Fija 5.98% USD. Vto. 04-2026),0.0035,35.7255,0.3502,35.7255
-RUCDC,RF_Local_HD (MSU Energy Clase XII. Tasa Fija 9.75% USMSU Energy Clase XII. Tasa Fija 9.75% USD. Vto. 12-2030),0.0035,0.1005,0.008,0.1005
-RUCDD,RF_Local_HD (MSU Energy Clase XII. Tasa Fija 9.75% USMSU Energy Clase XII. Tasa Fija 9.75% USD. Vto. 12-2030),0.0035,0.0995,0.0079,0.0995
-TTC7D,RF_Local_HD (Tecpetrol. Clase VII. Tasa fija 5.98%. UTecpetrol. Clase VII. Tasa fija 5.98%. USD. Vto. 04-2026.),0.0035,0.9386,0.0567,0.9386
+SNAAO,RF_Local_Pesos (San Miguel. Serie 10. Clase A. Dolar LinSan Miguel. Serie 10. Clase A. Dolar Linked. 7.00%. ARS. Vto. 07-2026.),0.0376,1.7773,0.0889,1.7773
+SNABO,RF_Local_Pesos (San Miguel. Serie 10. Clase B. Tasa fijaSan Miguel. Serie 10. Clase B. Tasa fija 9%. USD. Vto. 07-2026.),0.0376,0.9079,0.0553,0.9079
+SNSBO,RF_Local_Pesos (San Miguel. Serie 11. Tasa Fija. 9.50%. San Miguel. Serie 11. Tasa Fija. 9.50%. USD. Vto. 10-2026.),0.0376,0.7454,0.0475,0.7454
+GD46D,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2046),0.0097,0.1038,0.0083,0.1038
+AL41D,RF_Local_HD (Bonos de la Republica Argentina en USD. Bonos de la Republica Argentina en USD. Step Up. Vto. 2041),0.0097,0.1027,0.0082,0.1027
+GD41D,RF_Local_HD (Bonos Globales de la Republica ArgentinaBonos Globales de la Republica Argentina USD Step Up Vto. 2041),0.0097,0.1065,0.0085,0.1065
+BC7DD,RF_Local_HD (Bonos PBA clase C 2037 USDBonos PBA clase C 2037 USD),0.0097,0.1274,0.01,0.1274
+BB7DD,RF_Local_HD (Bonos PBA clase B 2037 USDBonos PBA clase B 2037 USD),0.0097,0.1232,0.0097,0.1232
+CO35D,RF_Local_HD (Pcia. Córdoba. Tasa fija 8.6%. USD. VtoPcia. Córdoba. Tasa fija 8.6%. USD. Vto. 02-2035.),0.0097,0.0962,0.0077,0.0962
+TTC7D,RF_Local_HD (Tecpetrol. Clase VII. Tasa fija 5.98%. UTecpetrol. Clase VII. Tasa fija 5.98%. USD. Vto. 04-2026.),0.0097,0.9386,0.0567,0.9386
+CAC8D,RF_Local_HD (Capex S.A. Clase VIII. Tasa Fija 5.95% UCapex S.A. Clase VIII. Tasa Fija 5.95% USD. Vto. 06-2026),0.0097,0.162,0.0126,0.162
+DNC8D,RF_Local_HD (Edenor. Clase VIII. Tasa Fija 8.50%. USDEdenor. Clase VIII. Tasa Fija 8.50%. USD. Vto. 08-2026.),0.0097,0.1464,0.0115,0.1464

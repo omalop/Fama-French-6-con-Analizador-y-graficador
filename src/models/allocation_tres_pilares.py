@@ -449,6 +449,22 @@ def obtener_yields_bonos(df_bonos: pd.DataFrame) -> dict:
     # Filtrar tickers con terminación 'C' (Dólar Cable / Operatoria No Local)
     df_bonos = df_bonos[~df_bonos['simbolo'].str.endswith('C')].copy()
 
+    # ⚠️ FILTRO DE CALIDAD Y SANIDAD (REGLA ANTIGRAVITY ART. 3)
+    # 1. Paridad mínima: Evitar activos sin liquidez o en default profundo (basura estadística)
+    df_bonos = df_bonos[df_bonos['paridad_pct'] >= 10.0].copy()
+
+    # 2. TIR Máxima logicamente aceptable (Sanity Check):
+    # En USD > 100% anual es error de data o default inminente.
+    # En ARS > 500% anual (nominal) es error de data.
+    def filtro_tir_logica(row):
+        tir = row['tir_pct']
+        if pd.isna(tir): return True
+        if row['moneda'] == 'USD' and tir > 100.0: return False
+        if row['moneda'] == 'ARS' and tir > 500.0: return False
+        return True
+
+    df_bonos = df_bonos[df_bonos.apply(filtro_tir_logica, axis=1)].copy()
+
     # 1. Soberanos Hard Dollar (Nacionales en USD)
     soberanos_hd = df_bonos[(df_bonos['tipo'] == 'Soberano') & (df_bonos['moneda'] == 'USD')]
     for _, fila in soberanos_hd.iterrows():
@@ -788,107 +804,65 @@ if __name__ == "__main__":
 
     for segmento in ['Soberano', 'Subsoberano', 'Corporativo', 'Pesos/CER']:
         print(f"  [{segmento.upper()}]")
-        bonos_segmento = []
+        temp_segmento = []
+        
         for ticker, info in yields_bonos.items():
             if info['segmento'] != segmento:
                 continue
+            
             tir = info['tir']
-            if tir is not None:
-                paridad = info.get('paridad') or 0.0
-                cvx     = info.get('cvx') or 0.0
-                md      = info.get('md') or 0.0
-                tem     = info.get('tem')
+            if tir is None:
+                continue
+                
+            paridad = info.get('paridad') or 0.0
+            cvx     = info.get('cvx') or 0.0
+            md      = info.get('md') or 0.0
+            tem     = info.get('tem')
+            es_viable = False
+            b_dict = {'Ticker': ticker, 'Desc': info['desc'], 'TIR': tir, 'MD': md, 'CVX': cvx, 'TEM': tem, 'Paridad': paridad}
 
-                if segmento in ('Soberano', 'Subsoberano'):
-                    # ----------------------------------------------------
-                    # Soberanos / Subsoberanos HD:
-                    # - Sin límite de paridad
-                    # - TIR mínima dinámica: Treasury + EMBI - 1% (tolerancia)
-                    # - Horizonte Milei (~6 años): usar filtros de Convexidad alta y MD razonable
-                    #   para maximizar upside ante baja riesgo país y minimizar caída si sube
-                    # Referencia: Fabozzi (2007) Cap. 7 — Convexidad positiva como seguro de tasa
-                    # ----------------------------------------------------
-                    es_viable = (tir >= tir_hd_min) and (cvx > 0) and (md <= 10)
-                    etiqueta_paridad = "-"  # Sin restricción de paridad en soberanos
+            if segmento in ('Soberano', 'Subsoberano'):
+                # Bench: TIR > tir_hd_min (Riesgo País)
+                es_viable = (tir >= tir_hd_min) and (cvx > 0) and (md <= 10)
+                b_dict['score_ranking'] = (tir / tir_hd_min if tir_hd_min > 0 else 0) + (cvx / 10.0) - (md / 20.0)
 
-                elif segmento == 'Corporativo':
-                    # ----------------------------------------------------
-                    # Corporativos HD:
-                    # - Paridad: 90% ≤ paridad ≤ 100.9% (refleja calidad crediticia)
-                    # - Criterio compuesto: TIR + Convexidad + MD
-                    #   Mayor TIR = mercado confía en la empresa
-                    #   Mayor CVX = mayor upside ante calda de tasas
-                    #   Menor MD = menor castigo ante suba de riesgo país
-                    # ----------------------------------------------------
-                    paridad_ok = (90.0 <= paridad <= 100.9)
-                    es_viable = paridad_ok and (tir >= tir_hd_min) and (cvx >= 0) and (md <= 7)
-                    etiqueta_paridad = f"{paridad:.1f}%"
+            elif segmento == 'Corporativo':
+                # Bench: TIR > tir_hd_min + Paridad razonable
+                paridad_ok = (85.0 <= paridad <= 101.5)
+                es_viable = paridad_ok and (tir >= tir_hd_min) and (md <= 7)
+                b_dict['score_ranking'] = (tir / tir_hd_min if tir_hd_min > 0 else 0) - (md / 10.0)
 
-                else:  # Pesos/CER
-                    # ----------------------------------------------------
-                    # Bonos en Pesos (Carry Trade / CER):
-                    # - Ajustar TEM a Nominal si es CER/UVA
-                    # - TEM Nominal > inflación y > 90% prom mercado
-                    # - MD < 5 (sensibilidad manejable para carry)
-                    # Referencia: Carry Trade — Brunnermeier et al. (2008)
-                    # ----------------------------------------------------
-                    es_cer = 'CER' in info['desc'] or 'UVA' in info['desc']
-                    tem_nominal = (tem + inflacion_mensual_esperada) if tem is not None and es_cer else tem
-                    
-                    tem_ok = (tem_nominal is not None) and (tem_nominal > max(inflacion_mensual_esperada, tem_promedio_mercado * 0.9))
-                    es_viable = tem_ok and (md < 5)
-                    etiqueta_paridad = f"{paridad:.1f}%" if paridad else "-"
-                    
-                    if es_viable:
-                        tem_usd = (1 + tem_nominal) / (1 + devalu_mensual_esperada) - 1
-                        tir_usd_proyectada = (1 + tem_usd) ** 12 - 1
-                        
-                        if es_cer and tir is not None:
-                            tir_anual_nominal_proy = (1 + tir) * (1 + inflacion_anual_esperada) - 1
-                        else:
-                            tir_anual_nominal_proy = ((1 + tem_nominal) ** 12) - 1 if tem_nominal is not None else 0.0
-                    else:
-                        tir_usd_proyectada = 0.0
-                        tir_anual_nominal_proy = 0.0
-
-                marca = "⭐" if es_viable else "  "
-
-                # Línea de display con TEM y Carry para pesos/CER
-                if segmento == 'Pesos/CER' and tem is not None:
-                    es_cer = 'CER' in info['desc'] or 'UVA' in info['desc']
-                    tem_nom_print = (tem + inflacion_mensual_esperada) if es_cer else tem
-                    print(f"  {marca}  {ticker:<8} {info['desc']:<28}  TIR Real:{tir:.2%} TEM_nom:{tem_nom_print:.2%}  MD:{md:.2f}  Par:{etiqueta_paridad}")
-                    if es_viable:
-                        print(f"           ↳ Carry Trade Proy. USD: {tir_usd_proyectada:.1%} anual | TIR Nominal Proy. Anual: {tir_anual_nominal_proy:.1%}")
-                else:
-                    print(f"  {marca}  {ticker:<8} {info['desc']:<28}  TIR:{tir:.2%}  MD:{md:.2f}  CVX:{cvx:.2f}  Par:{etiqueta_paridad}")
-
+            else:  # Pesos/CER
+                # Bench: TEM Nominal > Inflación Esperada
+                es_cer = 'CER' in info['desc'] or 'UVA' in info['desc']
+                tem_nominal = (tem + inflacion_mensual_esperada) if tem is not None and es_cer else tem
+                
+                tem_ok = (tem_nominal is not None) and (tem_nominal > max(inflacion_mensual_esperada, tem_promedio_mercado * 0.95))
+                es_viable = tem_ok and (md < 4.5)
+                
                 if es_viable:
-                    b_dict = {'Ticker': ticker, 'Desc': info['desc'], 'TIR': tir,
-                              'MD': md, 'CVX': cvx, 'TEM': tem}
-                    if segmento == 'Pesos/CER':
-                        b_dict['TEM_Nominal'] = tem_nominal
-                        b_dict['TIR_USD_Carry'] = tir_usd_proyectada
-                        bonos_viables_pesos.append(b_dict)
-                    else:
-                        bonos_segmento.append(b_dict)
-                        bonos_viables_hd.append(b_dict)
-            else:
-                print(f"       {ticker:<8} {info['desc']:<30}  Sin datos hoy")
+                    tem_usd = (1 + tem_nominal) / (1 + devalu_mensual_esperada) - 1
+                    b_dict['TIR_USD_Carry'] = (1 + tem_usd) ** 12 - 1
+                    b_dict['score_ranking'] = b_dict['TIR_USD_Carry']
+                    b_dict['TEM_Nominal'] = tem_nominal
 
-        # Ranking compuesto para HD dentro de cada segmento
-        if bonos_segmento and segmento != 'Pesos/CER':
-            # Score compuesto: balancear TIR (1pt), CVX (1pt) e inversa MD (1pt)
-            # Normalizar CVX e inversa de MD sobre el propio segmento
-            df_seg = pd.DataFrame(bonos_segmento)
-            if len(df_seg) > 1:
-                df_seg['score_compuesto'] = (
-                    (df_seg['TIR'] / df_seg['TIR'].max() if df_seg['TIR'].max() > 0 else 0) +
-                    (df_seg['CVX'] / df_seg['CVX'].max() if df_seg['CVX'].max() > 0 else 0) +
-                    ((1 / df_seg['MD'].replace(0, np.nan)) / (1 / df_seg['MD'].replace(0, np.nan)).max())
-                )
-                df_seg = df_seg.sort_values('score_compuesto', ascending=False)
-                print(f"  ↳ Ranking {segmento}: {' > '.join(df_seg['Ticker'].tolist())}")
+            if es_viable:
+                temp_segmento.append(b_dict)
+
+        # Seleccionar solo los mejores del segmento (Top 3)
+        if temp_segmento:
+            df_temp = pd.DataFrame(temp_segmento).sort_values('score_ranking', ascending=False).head(3)
+            for _, b in df_temp.iterrows():
+                marca = "⭐"
+                if segmento == 'Pesos/CER':
+                    print(f"  {marca}  {b['Ticker']:<8} {b['Desc']:<28}  TEM_nom:{b['TEM_Nominal']:.2%}  Carry_USD:{b['TIR_USD_Carry']:.1%} anual")
+                    bonos_viables_pesos.append(b.to_dict())
+                else:
+                    print(f"  {marca}  {b['Ticker']:<8} {b['Desc']:<28}  TIR:{b['TIR']:.2%}  MD:{b['MD']:.2f}  Par:{b['Paridad']:.1f}%")
+                    bonos_viables_hd.append(b.to_dict())
+        else:
+            print("     (Sin instrumentos que superen el benchmark de este segmento)")
+        print()
         print()
 
     # Pesos en pesos: ranking por Carry USD descendente
